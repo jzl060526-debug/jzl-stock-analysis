@@ -1,0 +1,56 @@
+# ============================================================
+# JZL AI执行语言策略
+# 说明：这不是买卖硬规则，只负责约束DeepSeek/OpenAI怎么说、怎么输出JSON。
+# ============================================================
+strategy_id: jzl_ai_execution_v1                   # 策略ID：AI语言策略
+strategy_name: JZL AI交易语言与JSON输出策略         # 显示名称
+strategy_type: AI解释 / JSON输出 / 交易复盘语言      # 类型说明
+version: 1.0                                       # 版本号
+mode: ai_guidance                                  # 用途：AI解释策略
+is_execution_strategy: false                       # 不是买卖执行策略
+is_scoring_strategy: false                         # 不是评分策略
+enabled: true                                      # 是否启用
+
+action_enum:                                       # AI只能输出这些动作
+  - WATCH                                          # 观察
+  - NO_ACTION                                      # 不操作
+  - PAPER_BUY                                      # 虚拟买入
+  - PAPER_ADD                                      # 虚拟加仓
+  - PAPER_SELL                                     # 虚拟减仓
+  - PAPER_CLEAR                                    # 虚拟清仓
+
+confidence_enum:                                   # 信心等级
+  - low                                            # 低信心
+  - medium                                         # 中等信心
+  - high                                           # 高信心
+
+setup_type_enum:                                   # 交易形态分类
+  - pullback_buy                                   # 回踩买点
+  - breakout_buy                                   # 突破买点
+  - trend_resume                                   # 趋势恢复
+  - reduce_risk                                    # 减仓风控
+  - clear_risk                                     # 清仓风控
+  - watch                                          # 观察
+
+output_schema:                                     # AI输出JSON结构
+  action: "WATCH | NO_ACTION | PAPER_BUY | PAPER_ADD | PAPER_SELL | PAPER_CLEAR" # 动作
+  code: "股票代码"                                # 代码
+  name: "股票名称"                                # 名称
+  strategy_id: "策略ID"                            # 当前策略ID
+  setup_type: "交易形态"                           # 买点/卖点类型
+  confidence: "low | medium | high"               # 信心等级
+  reason: ["具体理由"]                             # 理由列表
+  risk: ["具体风险"]                               # 风险列表
+  order: "交易动作必须给price_mode和position_pct，否则为null" # 虚拟订单
+  execution_plan: ["后续观察计划"]                  # 后续观察
+  invalid_if: ["失效条件"]                         # 判断失效条件
+  review_note: "一句话复盘记录"                     # 复盘语言
+  need_human_review: true                          # 是否需要人工复核
+
+hard_language_rules:                               # AI语言硬约束
+  - 数据不足时只能WATCH或NO_ACTION
+  - 趋势破坏时不能给PAPER_BUY或PAPER_ADD
+  - 仓位超限时不能给PAPER_BUY或PAPER_ADD
+  - 交易动作必须带order
+  - 不能编造不存在的数据
+  - 不能说真实买卖，只能说虚拟动作

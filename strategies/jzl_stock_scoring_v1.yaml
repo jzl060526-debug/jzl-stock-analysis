@@ -1,0 +1,106 @@
+# ============================================================
+# JZL全市场趋势波段评分策略 v1.1
+# 说明：这是“选股评分策略”，只负责从股票池里筛候选，不直接买入。
+# DIY顺序：先调权重，再调过滤条件，最后才新增条件名。
+# ============================================================
+
+strategy_id: jzl_stock_scoring_v1                  # 策略ID：选股评分策略的唯一名称
+strategy_name: JZL全市场趋势波段评分策略           # 显示名称：界面里看到的名字
+strategy_type: 全市场选股 / 候选池生成 / 趋势波段评分 # 类型说明：不直接影响执行
+version: 1.1                                       # 策略版本号
+mode: scoring                                      # 用途：scoring表示评分策略
+is_scoring_strategy: true                          # 是否是评分策略：true
+is_execution_strategy: false                       # 是否是买卖执行策略：false
+enabled: true                                      # 是否启用
+
+description: >                                     # 策略说明
+  这套策略参考市场主流趋势跟随、动量突破、均线回踩、量价健康、风险扣分思路。
+  它只负责选出候选股，不负责真实或虚拟买卖。评分通过后，还需要执行策略和AI审计。
+
+parameters:
+  min_history_bars: 80                             # 最少历史K线数量，少于80根不评分
+  min_price: 2.0                                   # 最低股价过滤，过低价格容易失真
+  max_price: 300.0                                 # 最高股价过滤，过高价格不适合当前资金训练
+  min_amount_yi: 0.30                              # 最低成交额，单位亿；想减少冷门票可改成1.00
+  max_distance_ma5_penalty_pct: 8.0                # 高于五日线超过8%开始扣分
+  severe_distance_ma5_penalty_pct: 12.0            # 高于五日线超过12%重扣分
+  max_down_day_pct: -7.0                           # 单日跌幅低于-7%视为大跌风险
+  recent_ret20_good_pct: 5.0                       # 20日涨幅超过5%算近期动量较好
+  recent_ret60_good_pct: 10.0                      # 60日涨幅超过10%算中期动量较好
+  volatility_warning_pct: 80.0                     # 年化波动过高时扣分
+
+filters:
+  must_pass:                                       # 硬过滤：不通过就直接剔除
+    - sufficient_daily_data                        # 历史数据充足
+    - price_in_reasonable_range                    # 股价在合理范围内
+    - liquidity_ok                                 # 成交额过关
+    - not_price_below_ma20                         # 不在二十日线下方
+    - not_trend_broken                             # 趋势没有破坏
+
+score_items:                                       # 评分项目：总分按各项权重相加
+  trend_structure:                                 # 趋势结构评分
+    name: 趋势结构                                 # 显示名称
+    weight: 25                                     # 权重25分
+    conditions:                                    # 命中的条件越多，本项得分越高
+      - price_above_ma20                           # 价格在二十日线上方
+      - ma5_above_ma10                             # 五日线在十日线上方
+      - ma10_above_ma20                            # 十日线在二十日线上方
+      - ma20_above_ma60                            # 二十日线在六十日线上方
+      - trend_not_broken                           # 趋势未破坏
+  momentum_breakout:                               # 动量突破评分
+    name: 动量突破                                 # 显示名称
+    weight: 15                                     # 权重15分；想偏突破可调到25
+    conditions:
+      - breakout_20d_high                          # 突破二十日高点
+      - ret20_positive                             # 20日涨幅为正
+      - ret60_positive                             # 60日涨幅为正
+      - ret20_good                                 # 20日涨幅较好
+  pullback_quality:                                # 回踩质量评分
+    name: 回踩质量                                 # 显示名称
+    weight: 20                                     # 权重20分；想偏回踩可调到30
+    conditions:
+      - price_near_ma5_or_ma10_or_ma20             # 接近关键均线
+      - price_pullback_to_ma5_or_ma10              # 回踩五日或十日线
+      - pullback_volume_shrink                     # 回踩缩量
+      - no_big_bearish_breakdown                   # 没有放量大阴破位
+      - distance_ma5_not_too_high                  # 距离五日线不过远
+  volume_price_quality:                            # 量价健康评分
+    name: 量价健康                                 # 显示名称
+    weight: 15                                     # 权重15分
+    conditions:
+      - volume_healthy                             # 量能健康
+      - not_volume_big_drop                        # 不是放量下跌
+      - not_high_volume_upper_shadow_failed        # 不是放量长上影失败
+      - amount_ok                                  # 成交额达标
+  risk_control:                                    # 风险控制评分
+    name: 风险控制                                 # 显示名称
+    weight: 15                                     # 权重15分
+    conditions:
+      - not_price_below_ma20                       # 没跌破二十日线
+      - not_distance_ma5_too_high                  # 不过度追高
+      - not_big_down_day                           # 不是大跌日
+      - volatility_not_extreme                     # 波动不过极端
+  relative_strength_proxy:                         # 相对强弱替代评分
+    name: 相对强弱替代项                           # 显示名称
+    weight: 10                                     # 权重10分
+    conditions:
+      - ret20_positive                             # 20日涨幅为正
+      - ret60_positive                             # 60日涨幅为正
+      - price_above_ma10                           # 价格在十日线上方
+      - price_above_ma5                            # 价格在五日线上方
+
+risk_penalty:                                      # 风险扣分项，命中就扣分
+  distance_ma5_too_high: -10                       # 距离五日线过远，扣10分
+  severe_distance_ma5_too_high: -20                # 严重远离五日线，扣20分
+  high_volume_upper_shadow_failed: -20             # 放量长上影失败，扣20分
+  volume_big_drop: -20                             # 放量下跌，扣20分
+  price_below_ma20: -30                            # 跌破二十日线，扣30分
+  trend_broken: -40                                # 趋势破坏，扣40分
+  big_down_day: -15                                # 大跌日，扣15分
+  liquidity_weak: -10                              # 流动性弱，扣10分
+
+candidate_level:                                   # 候选等级分层
+  core_candidate: 80                               # 80分以上：核心候选
+  watch_candidate: 70                              # 70分以上：观察候选
+  weak_watch: 60                                   # 60分以上：弱观察
+  reject: 0                                        # 低于60：剔除

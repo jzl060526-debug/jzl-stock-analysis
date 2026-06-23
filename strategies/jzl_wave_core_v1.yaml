@@ -1,0 +1,213 @@
+# ============================================================
+# JZL趋势波段完整执行策略 v2.1
+# 说明：这是“执行策略”，负责买入、加仓、减仓、清仓。
+# 调整原则：先改参数，再回测；不要一口气改十个参数。
+# ============================================================
+
+strategy_id: jzl_wave_core_v1                      # 策略ID：程序识别这个策略的唯一名字，不建议改
+strategy_name: JZL趋势波段完整执行策略              # 策略显示名称：界面里看到的名字，可以改中文
+strategy_type: 趋势波段 / 回踩承接 / 风控退出        # 策略类型：说明策略风格，不直接影响计算
+version: 2.1                                       # 策略版本：你每次大改后可以从2.1改成2.2
+mode: execution                                    # 策略用途：execution表示买卖执行策略
+is_execution_strategy: true                        # 是否可用于AI交易员和历史回测：true表示可以
+is_scoring_strategy: false                         # 是否是全市场评分策略：这里不是，所以为false
+enabled: true                                      # 是否启用：false时相当于停用该策略
+
+description: >                                     # 策略说明：给人和AI看的，不是硬条件
+  这是JZL证券分析当前默认执行策略。它整合趋势未坏、均线结构、缩量回踩、分时承接、
+  突破质量、仓位纪律和破位风控。策略不追求AI自由发挥，而是先由脚本判断硬条件，
+  再由DeepSeek根据AI解释规则输出虚拟交易语言和JSON动作，最后由审计器决定是否执行。
+
+allowed_actions:                                  # AI允许输出的动作，不能随便新增
+  - WATCH                                         # 观察，不交易
+  - NO_ACTION                                     # 不操作
+  - PAPER_BUY                                     # 虚拟买入/建仓
+  - PAPER_ADD                                     # 虚拟加仓
+  - PAPER_SELL                                    # 虚拟减仓
+  - PAPER_CLEAR                                   # 虚拟清仓
+
+# ============================================================
+# 参数区：以后多数优化优先改这里，不必改Python
+# ============================================================
+parameters:
+  near_ma5_pct: 2.5                               # 距离五日线2.5%以内，算接近五日线
+  near_ma10_pct: 3.5                              # 距离十日线3.5%以内，算接近十日线
+  near_ma20_pct: 4.5                              # 距离二十日线4.5%以内，算接近二十日线
+  max_distance_ma5_buy_pct: 6.0                   # 买入时高于五日线超过6%，判定追高，禁止买入
+  max_distance_ma5_add_pct: 4.5                   # 加仓时高于五日线超过4.5%，禁止加仓
+  far_above_ma5_reduce_pct: 8.0                   # 高于五日线超过8%，进入减仓观察
+  volume_shrink_max_ratio: 0.90                   # 量比小于等于0.90，视为缩量回踩
+  volume_healthy_min_ratio: 0.60                  # 量能健康下限，低于这个可能无量反抽
+  volume_healthy_max_ratio: 1.80                  # 量能健康上限，高于这个可能放量过猛
+  volume_mild_expand_min_ratio: 1.05              # 温和放量下限
+  volume_mild_expand_max_ratio: 1.80              # 温和放量上限
+  volume_big_expand_ratio: 1.80                   # 量比大于1.80，视为明显放量
+  breakout_high_tolerance_pct: 0.5                # 接近20日高点0.5%以内，也算突破候选
+  upper_shadow_pct: 3.0                           # 上影线超过3%，视为冲高回落风险
+  big_drop_pct: -3.0                              # 单日跌幅超过-3%，配合放量视为风险
+  require_intraday_for_buy: true                  # 买入是否要求分时数据，true更谨慎
+  require_volume_for_buy: true                    # 买入是否要求量能数据，true更谨慎
+
+# ============================================================
+# 硬风控：优先级最高，脚本执行，不交给AI自由解释
+# ============================================================
+hard_risk_rules:
+  force_clear:                                    # 强制清仓规则：命中任意一条，持仓时优先清仓
+    required_any:                                 # required_any表示命中任意条件即可触发
+      - price_below_ma20_and_trend_broken         # 跌破二十日线且趋势破坏
+      - high_volume_big_bearish_breakdown         # 放量大阴破位
+      - failed_rebound_after_breakdown            # 破位后反抽失败
+  forbid_buy:                                     # 禁止买入规则：命中任意一条，不允许买入/加仓
+    required_any:
+      - insufficient_daily_data                   # 日线数据不足
+      - insufficient_intraday_data                # 分时数据不足
+      - insufficient_volume_data                  # 量能数据不足
+      - price_below_ma20                          # 价格低于二十日线
+      - trend_broken                              # 趋势已破坏
+      - max_positions_reached                     # 持仓数量达到上限
+      - distance_ma5_too_high                     # 距离五日线过远，追高风险
+      - high_volume_big_bearish_breakdown         # 放量大阴破位
+      - high_volume_upper_shadow_failed           # 放量长上影失败
+
+# ============================================================
+# 首次建仓：满足N条即可进入AI判断，但不能命中禁止项
+# ============================================================
+buy_rules:
+  mode: count_based                               # count_based表示满足一定数量条件即可，不要求全部满足
+  required_min_count: 5                           # 买入候选至少满足5条；4偏激进，6偏保守
+  conditions:                                     # 买入候选条件池，脚本会统计命中数量
+    - trend_not_broken                            # 趋势未破坏
+    - ma5_above_ma10                              # 五日线在十日线上方
+    - ma10_above_ma20                             # 十日线在二十日线上方
+    - price_above_ma20                            # 价格站在二十日线上方
+    - price_near_ma5_or_ma10_or_ma20              # 价格靠近关键均线
+    - price_pullback_to_ma5_or_ma10               # 回踩五日线或十日线附近
+    - pullback_volume_shrink                      # 回踩缩量
+    - volume_healthy                              # 量能处于健康区间
+    - no_big_bearish_breakdown                    # 没有放量大阴破位
+    - intraday_recover_vwap                       # 分时重新站上均价线
+    - intraday_support_strong                     # 分时承接较强
+    - position_allowed                            # 仓位允许
+  forbidden:                                      # 买入禁区，命中任意一条都不能买
+    - price_below_ma20                            # 跌破二十日线
+    - trend_broken                                # 趋势破坏
+    - max_positions_reached                       # 持仓数达到上限
+    - distance_ma5_too_high                       # 乖离过大，追高风险
+    - volume_big_drop                             # 放量下跌
+    - high_volume_upper_shadow_failed             # 放量长上影失败
+  preferred_setups:                               # 买点类型识别，给AI解释用，也方便以后分类回测
+    pullback_buy:                                 # 回踩买点：趋势中回踩接回/建仓
+      required_any:
+        - price_pullback_to_ma5_or_ma10           # 回踩五日线或十日线
+        - price_near_ma20                         # 或靠近二十日线
+      confirm:
+        - pullback_volume_shrink                  # 确认1：缩量
+        - intraday_recover_vwap                   # 确认2：分时站回均价线
+    breakout_buy:                                 # 突破买点：强势突破候选
+      required:
+        - breakout_20d_high                       # 突破二十日高点
+        - volume_mild_expand                      # 温和放量
+        - intraday_support_strong                 # 分时承接强
+    trend_resume_buy:                             # 趋势恢复买点：回踩后重新走强
+      required:
+        - trend_not_broken                        # 趋势未破坏
+        - pullback_then_recover                   # 回踩后恢复
+        - volume_healthy                          # 量能健康
+  order:                                          # 买入执行参数
+    price_mode: current_price                     # 用当前价格虚拟成交
+    position_pct: 0.20                            # 首次建仓使用虚拟本金20%
+
+# ============================================================
+# 加仓：比首次买入更严格，必须已有持仓，并且趋势/分时/量能都确认
+# ============================================================
+add_rules:
+  mode: all_required                              # all_required表示所有required条件都要满足
+  required:
+    - already_holding                             # 已有持仓
+    - profit_position                             # 当前持仓浮盈
+    - trend_not_broken                            # 趋势未破坏
+    - pullback_then_recover                       # 回踩后恢复
+    - intraday_support_strong                     # 分时承接强
+    - volume_healthy                              # 量能健康
+    - position_allowed                            # 仓位允许
+    - add_times_not_exceeded                      # 加仓次数未超限
+  forbidden:
+    - price_below_ma10                            # 跌破十日线，不加仓
+    - price_below_ma20                            # 跌破二十日线，不加仓
+    - trend_broken                                # 趋势破坏，不加仓
+    - volume_big_drop                             # 放量下跌，不加仓
+    - distance_ma5_too_high_for_add               # 加仓时离五日线过远
+    - near_major_resistance_without_breakout      # 靠近压力位但没突破
+  order:
+    price_mode: current_price                     # 用当前价格虚拟成交
+    position_pct: 0.10                            # 加仓使用虚拟本金10%
+
+# ============================================================
+# 减仓：不是趋势失败，只是冲高回落/压力位失败/放量滞涨时降风险
+# ============================================================
+sell_rules:
+  reduce:
+    required_any:
+      - high_volume_upper_shadow_failed           # 放量长上影失败
+      - intraday_failed_breakout                  # 分时突破失败
+      - price_far_above_ma5                       # 价格明显高于五日线
+      - volume_up_price_stagnant                  # 放量滞涨
+      - sector_turns_weak                         # 板块转弱
+      - weak_intraday_rebound_after_rise          # 上涨后分时弱反抽
+    order:
+      price_mode: current_price                   # 用当前价格虚拟成交
+      position_pct: 0.30                          # 减仓当前持仓30%
+
+# ============================================================
+# 清仓：趋势失败，优先退出虚拟持仓
+# ============================================================
+clear_rules:
+  required_any:
+    - price_below_ma20_and_trend_broken           # 跌破二十日线且趋势破坏
+    - high_volume_big_bearish_breakdown           # 放量大阴破位
+    - failed_rebound_after_breakdown              # 破位后反抽失败
+  order:
+    price_mode: current_price                     # 用当前价格虚拟成交
+    position_pct: 1.00                            # 清仓100%
+
+# ============================================================
+# 仓位纪律
+# ============================================================
+risk_control:
+  max_single_stock_pct: 0.30                      # 单只股票最大仓位30%
+  max_total_position_pct: 0.80                    # 总仓位最大80%
+  max_positions: 3                                # 最多同时持有3只股票
+  max_add_times: 2                                # 单票最多加仓2次
+  allow_buy_below_ma20: false                     # 不允许二十日线下方买入
+  allow_add_when_trend_broken: false              # 趋势破坏后不允许加仓
+  need_human_review: true                         # 需要人工复核，虚拟盘也保留审计逻辑
+
+# ============================================================
+# AI解释规则：给DeepSeek/OpenAI读，不作为脚本硬条件
+# ============================================================
+ai_guidance:
+  role: >                                         # AI角色定义
+    你是JZL趋势波段虚拟交易员。你只能在脚本给出的候选范围内判断交易质量，
+    不能自己创造新策略，不能越过硬风控。你的价值是解释买卖理由、风险、
+    仓位语气和复盘语言，而不是代替脚本计算指标。
+  trading_style: >                                # AI交易风格说明
+    优先做趋势未坏后的回踩承接和突破确认，不追没有承接的高位拉升。
+    买入要看趋势、位置、量能、分时承接、仓位五个维度。
+    加仓必须比首次买入更谨慎，最好已有浮盈和二次确认。
+    减仓用于冲高回落、放量滞涨、分时失败、压力位不过。
+    清仓用于趋势破坏，尤其跌破MA20并确认走弱。
+  decision_priority:                              # 决策优先级
+    - 清仓风控优先于一切买入信号
+    - 减仓风控优先于加仓
+    - 禁止买入条件优先于候选买点
+    - 数据不足时只能WATCH或NO_ACTION
+    - 仓位超限时不能买入或加仓
+  explain_focus:                                  # AI解释重点
+    - 当前属于回踩买点、突破买点、趋势恢复、减仓点、清仓点还是观察点
+    - 是否存在追高风险
+    - 距离MA5、MA10、MA20的位置是否合理
+    - 分时是否重新站上均价线并走强
+    - 成交量是缩量回踩、温和放大、无量反抽还是放量下跌
+    - 是否靠近20日高点或前高压力
+    - 本次动作是否符合仓位纪律
+    - 是否应该等待二次确认
