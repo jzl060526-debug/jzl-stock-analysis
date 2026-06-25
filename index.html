@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="免费制作会动的中文祝福卡，可下载高清图片。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%2324201d'/%3E%3Cpath d='M32 13l4.8 14.2L51 32l-14.2 4.8L32 51l-4.8-14.2L13 32l14.2-4.8z' fill='white'/%3E%3C/svg%3E">
+<title>会动的祝福卡｜免费制作</title>
+<style>
+*{box-sizing:border-box}body{margin:0;color:#24201d;background:#fff8f1;font-family:"Microsoft YaHei",system-ui,sans-serif}button,input,textarea{font:inherit}button{cursor:pointer}.wrap{width:min(1060px,calc(100% - 28px));margin:auto}header{height:74px;display:flex;align-items:center;justify-content:space-between;font-weight:800}.pill{border:1px solid #e8ddd3;background:#fff;border-radius:99px;padding:9px 15px}.hero{padding:58px 0 70px;display:grid;grid-template-columns:1fr 420px;gap:58px;align-items:center}.tag{color:#d75e41;font-size:13px;font-weight:800;letter-spacing:.08em}h1{font-size:clamp(48px,7vw,78px);line-height:1.08;letter-spacing:-.06em;margin:18px 0 25px}.hero p{color:#746b64;line-height:1.8;font-size:17px}.demo{aspect-ratio:3/4;border-radius:32px;background:linear-gradient(145deg,#f6a15f,#e5524c 60%,#823751);box-shadow:0 30px 70px #6e3f272b;color:#fff;padding:46px;display:flex;flex-direction:column;justify-content:space-between;transform:rotate(2deg);overflow:hidden;position:relative}.demo:after{content:"✦";font-size:60px;position:absolute;right:55px;top:210px;animation:pulse 2s infinite}.demo b{font:500 47px/1.45 KaiTi,serif;position:relative;z-index:1}.demo small{letter-spacing:.12em}.maker{display:grid;grid-template-columns:380px 1fr;gap:24px}.panel{background:#fff;border:1px solid #eee1d7;border-radius:25px;padding:28px;box-shadow:0 22px 60px #5a321a14}.field{display:block;margin:18px 0}.field span{display:block;font-size:13px;font-weight:800;margin-bottom:8px}input,textarea{width:100%;border:1px solid #e5dbd3;border-radius:12px;padding:12px;outline:none}textarea{height:105px;resize:vertical;line-height:1.6}.themes{display:flex;flex-wrap:wrap;gap:8px}.themes button{border:1px solid #e6ddd5;background:#fff;border-radius:99px;padding:8px 12px}.themes .on{background:#24201d;color:#fff}.actions{display:flex;gap:10px}.primary{border:0;background:#24201d;color:#fff;border-radius:13px;padding:14px 20px;font-weight:800}.secondary{border:0;background:#f3ebe4;border-radius:13px;padding:14px}.preview{display:grid;place-items:center;background:#f0e8df}.preview canvas{width:min(100%,410px);height:auto;border-radius:22px;box-shadow:0 20px 45px #28160f38}.note{font-size:12px;color:#92877e;line-height:1.55}.support{margin:80px 0 30px;padding:42px;display:flex;align-items:center;justify-content:space-between;gap:30px;color:#fff;background:#24201d;border-radius:27px}.support h2{font-size:35px;margin:8px 0}.support p{color:#cfc5bd;margin:0}.support .primary{background:#fff;color:#24201d}footer{padding:25px 0 40px;color:#887d74;font-size:13px}dialog{border:0;border-radius:24px;padding:30px;text-align:center;width:min(430px,calc(100% - 24px));box-shadow:0 40px 100px #0006}dialog::backdrop{background:#17110db8}dialog img{width:min(100%,300px);display:block;margin:18px auto;border-radius:15px}dialog p,dialog small{color:#786e67;line-height:1.6}.close{position:absolute;right:12px;top:12px;border:0;border-radius:50%;width:35px;height:35px;font-size:22px}@keyframes pulse{50%{opacity:.45;transform:scale(.86) rotate(20deg)}}@media(max-width:800px){.hero,.maker{grid-template-columns:1fr}.demo{width:min(88vw,420px);justify-self:center;transform:none}.support{align-items:flex-start;flex-direction:column}}@media(max-width:520px){.hero{padding-top:35px}h1{font-size:48px}.panel{padding:20px}.support{padding:28px}.actions{flex-direction:column}.preview{padding:12px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><span>✦ 会动的祝福卡</span><button class="pill tip">随心赞赏</button></header>
+<section class="hero">
+<div><span class="tag">免费 · 无需登录 · 本地生成</span><h1>把一句心里话，<br>变成一张会动的卡。</h1><p>选择主题、写下祝福，立即生成动态卡片。可以下载 1080 × 1440 高清图片，也可以截图分享给朋友。</p><a class="primary" href="#maker" style="display:inline-block;text-decoration:none">开始制作</a></div>
+<div class="demo"><small>送给认真生活的你</small><b>愿今天有<br>小小的好事发生</b><small>保持期待 ✦</small></div>
+</section>
+<section class="maker" id="maker">
+<div class="panel">
+<h2>写下你的祝福</h2><p class="note">输入内容只在你的浏览器里处理，不上传、不保存。</p>
+<label class="field"><span>主题</span><div class="themes"><button class="on" data-t="warm">今日好运</button><button data-t="night">晚安好梦</button><button data-t="green">加油打气</button><button data-t="pink">温柔想念</button></div></label>
+<label class="field"><span>送给谁</span><input id="to" maxlength="16" value="认真生活的你"></label>
+<label class="field"><span>想说的话</span><textarea id="msg" maxlength="54">愿今天有小小的好事发生，也愿你的努力都有回音。</textarea></label>
+<label class="field"><span>落款</span><input id="from" maxlength="16" value="一个惦记你的人"></label>
+<div class="actions"><button class="primary" id="down">下载高清卡片</button><button class="secondary" id="random">换一句</button></div>
+<p class="note">全部功能免费。赞赏是自愿支持，不构成购买。</p>
+</div>
+<div class="panel preview"><canvas id="c" width="1080" height="1440"></canvas></div>
+</section>
+<section class="support"><div><span class="tag">如果它恰好帮到了你</span><h2>请我喝一口水。</h2><p>让这个小工具继续免费，也让我继续做下一件有用的小东西。</p></div><button class="primary tip">打开微信赞赏码</button></section>
+<footer>原创免费工具 · 无广告追踪 · 请付款前核对收款人</footer>
+</div>
+<dialog id="pay"><button class="close">×</button><h2>微信扫码，随心赞赏</h2><p>建议小额支持，未成年人请勿付款。</p><img src="./wechat-tip.svg" alt="微信赞赏二维码"><b>收款人：蓝蓝冷静（**朗）</b><small>本页面不会获取或处理付款信息。</small></dialog>
+<script>
+const c=document.querySelector("#c"),x=c.getContext("2d"),to=document.querySelector("#to"),msg=document.querySelector("#msg"),from=document.querySelector("#from"),pay=document.querySelector("#pay");
+const themes={warm:["#f4a260","#d74d4e","#fff7e9","今日好运"],night:["#405e99","#111b38","#fff8df","晚安好梦"],green:["#3aa68d","#145c68","#f7f07a","加油打气"],pink:["#ec9aab","#945879","#fff0d2","温柔想念"]};let theme="warm",time=0;
+const words=["愿今天有小小的好事发生，也愿你的努力都有回音。","慢一点没关系，只要还在往前走，你就在靠近答案。","今天辛苦了。把没完成的事情交给明天，先好好睡一觉。","愿你被这个世界温柔接住，也愿我能分给你一点温柔。"];
+function lines(t,max){let a=[],s="";[...t].forEach(ch=>{if(x.measureText(s+ch).width>max&&s){a.push(s);s=ch}else s+=ch});if(s)a.push(s);return a.slice(0,4)}
+function draw(){let [a,b,accent,label]=themes[theme],g=x.createLinearGradient(0,0,1080,1440);g.addColorStop(0,a);g.addColorStop(1,b);x.fillStyle=g;x.fillRect(0,0,1080,1440);let r=x.createRadialGradient(160,120,0,160,120,650);r.addColorStop(0,"#ffffff70");r.addColorStop(1,"#ffffff00");x.fillStyle=r;x.fillRect(0,0,1080,1440);for(let i=0;i<42;i++){let px=(Math.sin(i*991)*.5+.5)*1080,py=((Math.sin(i*377)*.5+.5)*1500-time*(.03+(i%5)*.008)+1500)%1500-30;x.globalAlpha=.15+(i%4)*.1;x.fillStyle=i%3?accent:"#fff";x.beginPath();x.arc(px+Math.sin(time*.001+i)*20,py,3+i%6,0,7);x.fill()}x.globalAlpha=1;x.fillStyle=accent;x.beginPath();x.arc(820,310+Math.sin(time*.002)*12,76,0,7);x.fill();x.fillStyle="#fff";x.font="500 30px Microsoft YaHei";x.fillText("TO  "+(to.value||"认真生活的你"),100,150);x.font="500 88px KaiTi";let ls=lines(msg.value||words[0],800),sy=560-(ls.length-2)*32;ls.forEach((l,i)=>x.fillText(l,100,sy+i*126));x.globalAlpha=.78;x.font="28px Microsoft YaHei";x.fillText(label,100,1120);x.strokeStyle="#ffffff70";x.beginPath();x.moveTo(100,1170);x.lineTo(980,1170);x.stroke();x.fillText("FROM  "+(from.value||"一个惦记你的人"),100,1250);x.globalAlpha=.5;x.font="22px Microsoft YaHei";x.fillText("一张会动的祝福卡 · 免费制作",100,1330);x.globalAlpha=1}
+function loop(){time+=16;draw();requestAnimationFrame(loop)}document.querySelectorAll(".themes button").forEach(b=>b.onclick=()=>{theme=b.dataset.t;document.querySelectorAll(".themes button").forEach(q=>q.classList.toggle("on",q===b));draw()});[to,msg,from].forEach(i=>i.oninput=draw);document.querySelector("#random").onclick=()=>{msg.value=words[Math.floor(Math.random()*words.length)];draw()};document.querySelector("#down").onclick=()=>{draw();let a=document.createElement("a");a.download="祝福卡.png";a.href=c.toDataURL("image/png");a.click()};document.querySelectorAll(".tip").forEach(b=>b.onclick=()=>pay.showModal());document.querySelector(".close").onclick=()=>pay.close();loop();
+</script>
+</body>
+</html>
